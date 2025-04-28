@@ -43,7 +43,7 @@ func Handler(ctx *fiber.Ctx, err error) error {
 		})
 	case errors.As(err, &internalServerError):
 		return ctx.Status(fiber.StatusInternalServerError).JSON(model.Response{
-			Code:   fiber.StatusInternalServerError,
+			Code:   fiber.StatusInternalServerError,	
 			Message: "Internal Server Error",
 			Data:   internalServerError.Error(),
 		})
