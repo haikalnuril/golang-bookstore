@@ -57,3 +57,23 @@ func (c *UserController) GetByEmail(ctx *fiber.Ctx) error {
 
 	return ctx.Status(fiber.StatusOK).JSON(utils.Success(user, "User retrieved successfully"))
 }
+
+func (c *UserController) Update(ctx *fiber.Ctx) error {
+	id := ctx.Params("id") // ambil ID dari URL
+
+	var req model.UserUpdateRequest
+	
+	if err := ctx.BodyParser(&req); err != nil {
+		return &exception.BadRequestError{Message: "Invalid request body"}
+	}
+
+	req.ID = id // set ID dari URL ke request body
+
+	user, err := c.usecase.Update(&req)
+	if err != nil {
+		return &exception.InternalServerError{Message: "Failed to update user"}
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(utils.Success(user, "User updated successfully"))
+
+}

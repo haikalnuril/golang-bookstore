@@ -35,3 +35,20 @@ func (r *userPostgres) GetByEmail(email string) (*entity.User, error) {
 	}
 	return user, nil
 }
+
+func (r *userPostgres) Update(id string, user *entity.User) (*entity.User, error) {
+	err := r.db.Model(&entity.User{}).Where("id = ?", id).Updates(user).Error
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
+func (r *userPostgres) Delete(id string) error {
+	err := r.db.Delete(&entity.User{}, id).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}
+

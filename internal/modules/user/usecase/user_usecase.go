@@ -64,3 +64,21 @@ func (u *UserUsecase) GetByEmail(email string) (*model.UserResponse, error) {
 		Email: user.Email,
 	}, nil
 }
+
+func (u *UserUsecase) Update(req *model.UserUpdateRequest) (*model.UserResponse, error) {
+	user := &entity.User{
+		Name:  req.Name,
+		Email: req.Email,
+	}
+
+	updatedUser, err := u.repo.Update(req.ID, user)
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.UserResponse{
+		ID:    updatedUser.ID.String(),
+		Name:  updatedUser.Name,
+		Email: updatedUser.Email,
+	}, nil
+}
