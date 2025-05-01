@@ -82,3 +82,8 @@ func (u *UserUsecase) Update(req *model.UserUpdateRequest) (*model.UserResponse,
 		Email: updatedUser.Email,
 	}, nil
 }
+
+func (u *UserUsecase) Delete(id string) error {
+	return u.repo.Delete(id)
+	
+}
