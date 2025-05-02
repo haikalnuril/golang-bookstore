@@ -13,4 +13,7 @@ func NewUserRouter(router fiber.Router, controller *controller.UserController) {
 	user.Get("/:email", controller.GetByEmail) // GET /users/:email
 	user.Put("/:id", controller.Update) // PUT /users/:id
 	user.Delete("/:id", controller.Delete) // DELETE /users/:id
+
+	auth := router.Group("/auth")
+	auth.Post("/login", controller.Login) // POST /auth/login
 }

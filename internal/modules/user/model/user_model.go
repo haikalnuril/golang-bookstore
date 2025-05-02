@@ -12,6 +12,12 @@ type UserResponse struct {
 	Email string `json:"email"`
 }
 
+type UserUpdateRequest struct {
+	ID    string `json:"id"`
+	Name  string `json:"name" validate:"min=2"`
+	Email string `json:"email" validate:"email"`
+}
+
 type UserPageResponse struct {
 	Page  int
 	Size  int
@@ -30,8 +36,3 @@ type UserLoginResponse struct {
 	Token string `json:"token"`
 }
 
-type UserUpdateRequest struct {
-	ID    string `json:"id"`
-	Name  string `json:"name" validate:"min=2"`
-	Email string `json:"email" validate:"email"`
-}

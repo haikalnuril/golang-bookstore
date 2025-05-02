@@ -52,3 +52,12 @@ func (r *userPostgres) Delete(id string) error {
 	return nil
 }
 
+func (r *userPostgres) Login(email, password string) (*entity.User, error) {
+	user := &entity.User{}
+	err := r.db.Where("email = ? AND password = ?", email, password).First(user).Error
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+

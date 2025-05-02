@@ -8,5 +8,5 @@ type UserRepository interface {
 	GetByEmail(email string) (*entity.User, error)
 	Update(id string, user *entity.User) (*entity.User, error)
 	Delete(id string) error
-	// Login(email, password string) (*entity.User, error)
+	Login(email, password string) (*entity.User, error)
 }

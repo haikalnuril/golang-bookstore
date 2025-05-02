@@ -91,3 +91,21 @@ func (c *UserController) Delete(ctx *fiber.Ctx) error {
 
 	return ctx.Status(fiber.StatusNoContent).JSON(utils.Success(nil, "User deleted successfully"))
 }
+
+func (c *UserController) Login(ctx *fiber.Ctx) error {
+	var req model.UserLoginRequest
+	if err := ctx.BodyParser(&req); err != nil {
+		return &exception.BadRequestError{Message: "Invalid request body"}
+	}
+
+	user, err := c.usecase.Login(&req)
+	if err != nil {
+		return &exception.InternalServerError{Message: "Failed to login"}
+	}
+
+	if user == nil {
+		return &exception.NotFoundError{Message: "User not found"}
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(utils.Success(user, "Login successful"))
+}

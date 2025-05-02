@@ -5,6 +5,7 @@ import (
 	"bookstore/internal/modules/user/entity"
 	"bookstore/internal/modules/user/model"
 	"bookstore/internal/modules/user/repository"
+	"fmt"
 )
 
 type UserUsecase struct {
@@ -85,5 +86,23 @@ func (u *UserUsecase) Update(req *model.UserUpdateRequest) (*model.UserResponse,
 
 func (u *UserUsecase) Delete(id string) error {
 	return u.repo.Delete(id)
-	
+
+}
+
+func (u *UserUsecase) Login(req *model.UserLoginRequest) (*model.UserLoginResponse, error) {
+	user, err := u.repo.GetByEmail(req.Email)
+	if err != nil {
+		return nil, err
+	}
+	if !utils.ComparePassword(req.Password, user.Password) {
+		return nil, fmt.Errorf("invalid password")
+	}
+
+	// Generate JWT token
+
+	return &model.UserLoginResponse{
+		Name:  user.Name,
+		Email: user.Email,
+		Token: user.ID.String(),
+	}, nil
 }
