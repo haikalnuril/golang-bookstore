@@ -6,6 +6,8 @@ import (
 	"bookstore/internal/modules/user/model"
 	"bookstore/internal/modules/user/repository"
 	"fmt"
+	"errors"
+	"gorm.io/gorm"
 )
 
 type UserUsecase struct {
@@ -91,18 +93,26 @@ func (u *UserUsecase) Delete(id string) error {
 
 func (u *UserUsecase) Login(req *model.UserLoginRequest) (*model.UserLoginResponse, error) {
 	user, err := u.repo.GetByEmail(req.Email)
+	
+	// Check if it's a "not found" error from the database
 	if err != nil {
-		return nil, err
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			// User not found - return a more specific error
+			return nil, fmt.Errorf("user with email %s not found", req.Email)
+		}
+		// Some other database error occurred
+		return nil, fmt.Errorf("database error: %w", err)
 	}
-	if !utils.ComparePassword(req.Password, user.Password) {
+	
+	// User found, now check password
+	if !utils.ComparePassword(user.Password, req.Password) {
 		return nil, fmt.Errorf("invalid password")
 	}
 
 	// Generate JWT token
-
 	return &model.UserLoginResponse{
 		Name:  user.Name,
 		Email: user.Email,
-		Token: user.ID.String(),
+		Token: user.ID.String(), // Consider using a proper JWT token here
 	}, nil
 }

@@ -5,6 +5,8 @@ import (
 	"bookstore/internal/app/utils"
 	"bookstore/internal/modules/user/model"
 	"bookstore/internal/modules/user/usecase"
+	"fmt"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -62,7 +64,7 @@ func (c *UserController) Update(ctx *fiber.Ctx) error {
 	id := ctx.Params("id") // ambil ID dari URL
 
 	var req model.UserUpdateRequest
-	
+
 	if err := ctx.BodyParser(&req); err != nil {
 		return &exception.BadRequestError{Message: "Invalid request body"}
 	}
@@ -98,13 +100,24 @@ func (c *UserController) Login(ctx *fiber.Ctx) error {
 		return &exception.BadRequestError{Message: "Invalid request body"}
 	}
 
-	user, err := c.usecase.Login(&req)
-	if err != nil {
-		return &exception.InternalServerError{Message: "Failed to login"}
+	// Basic validation
+	if req.Email == "" || req.Password == "" {
+		return &exception.BadRequestError{Message: "Email and password are required"}
 	}
 
-	if user == nil {
-		return &exception.NotFoundError{Message: "User not found"}
+	user, err := c.usecase.Login(&req)
+	if err != nil {
+		// Check for specific error cases
+		if strings.Contains(err.Error(), "not found") {
+			return &exception.UnauthorizedError{Message: "Email or password is incorrect"}
+		}
+		if strings.Contains(err.Error(), "invalid password") {
+			return &exception.UnauthorizedError{Message: "Email or password is incorrect"}
+		}
+
+		// Log the actual error for debugging
+		fmt.Printf("Login error: %v\n", err)
+		return &exception.InternalServerError{Message: "Authentication failed"}
 	}
 
 	return ctx.Status(fiber.StatusOK).JSON(utils.Success(user, "Login successful"))

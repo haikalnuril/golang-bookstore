@@ -3,6 +3,7 @@ package postgres
 import (
 	"bookstore/internal/modules/user/entity"
 
+
 	"gorm.io/gorm"
 )
 
@@ -29,10 +30,13 @@ func (r *userPostgres) GetAll() ([]entity.User, error) {
 
 func (r *userPostgres) GetByEmail(email string) (*entity.User, error) {
 	user := &entity.User{}
-	err := r.db.Where("email = ?", email).First(user).Error
-	if err != nil {
-		return nil, err
+	result := r.db.Where("email = ?", email).First(user)
+	
+
+	if result.Error != nil {
+		return nil, result.Error
 	}
+	
 	return user, nil
 }
 
