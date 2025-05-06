@@ -110,9 +110,15 @@ func (u *UserUsecase) Login(req *model.UserLoginRequest) (*model.UserLoginRespon
 	}
 
 	// Generate JWT token
+		token, err := utils.GenerateJWTToken(user.ID.String(), user.Email, user.Name)
+		if err != nil {
+			return nil, fmt.Errorf("failed to generate token: %w", err)
+		}
+	
+
 	return &model.UserLoginResponse{
 		Name:  user.Name,
 		Email: user.Email,
-		Token: user.ID.String(), // Consider using a proper JWT token here
+		Token: token,
 	}, nil
 }
