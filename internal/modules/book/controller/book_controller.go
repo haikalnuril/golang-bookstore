@@ -39,3 +39,40 @@ func (c *BookController) GetAll(ctx *fiber.Ctx) error {
 
 	return ctx.Status(fiber.StatusOK).JSON(utils.Success(books, "Books retrieved successfully"))
 }
+
+func (c *BookController) GetByID(ctx *fiber.Ctx) error {
+	id := ctx.Params("id")
+	if id == "" {
+		return &exception.BadRequestError{Message: "ID is required"}
+	}
+
+	book, err := c.usecase.GetByID(id)
+	if err != nil {
+		return &exception.InternalServerError{Message: "Failed to get book"}
+	}
+
+	if book == nil {
+		return &exception.NotFoundError{Message: "Book not found"}
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(utils.Success(book, "Book retrieved successfully"))
+}
+
+func (c *BookController) Update(ctx *fiber.Ctx) error {
+	id := ctx.Params("id")
+
+	var req model.UpdateBookRequest
+	if err := ctx.BodyParser(&req); err != nil {
+		return &exception.BadRequestError{Message: "Invalid request body"}
+	}
+
+	req.ID = id
+
+	book, err := c.usecase.Update(&req)
+	if err != nil {
+		return &exception.InternalServerError{Message: "Failed to update book"}
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(utils.Success(book, "Book updated successfully"))
+
+}

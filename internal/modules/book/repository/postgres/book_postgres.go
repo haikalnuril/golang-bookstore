@@ -26,3 +26,24 @@ func (r *bookPostgres) GetAll() ([]entity.Book, error) {
 	}
 	return books, nil
 }
+
+func (r *bookPostgres) GetByID(id string) (*entity.Book, error) {
+	book := &entity.Book{}
+	err := r.db.First(book, "id = ?", id).Error
+	if err != nil {
+		return nil, err
+	}
+	return book, nil
+}
+
+func (r *bookPostgres) Update(id string, book *entity.Book) ( *entity.Book,error) {
+	err := r.db.Model(&entity.Book{}).Where("id = ?", id).Updates(book).Error
+	if err != nil {
+		return nil, err
+	}
+	return book, nil
+}
+
+func (r *bookPostgres) Delete(id string) error {
+	return r.db.Delete(&entity.Book{}, "id = ?", id).Error
+}

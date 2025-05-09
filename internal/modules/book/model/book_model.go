@@ -8,6 +8,15 @@ type BookRequest struct {
 	Price         int
 }
 
+type UpdateBookRequest struct {
+	ID            string `json:"id"`
+	Title         string
+	Author        string
+	Genre         string
+	PublishedYear int
+	Price         int
+}
+
 type BookResponse struct {
 	ID            string
 	Title         string
