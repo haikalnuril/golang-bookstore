@@ -3,6 +3,7 @@ package config
 import (
 	"log"
 	"os"
+	"strconv"
 
 	"github.com/joho/godotenv"
 )
@@ -14,6 +15,8 @@ type Config struct {
 	DBPort     string
 	DBName     string
 	Port       string
+	JWTSecret  string
+	JWTExpire  int
 }
 
 func LoadConfig() *Config {
@@ -22,12 +25,34 @@ func LoadConfig() *Config {
 		log.Fatal("Error loading .env file")
 	}
 
+	c := &Config{}
 	return &Config{
-		DBUser:     os.Getenv("DB_USER"),
-		DBPassword: os.Getenv("DB_PASSWORD"),
-		DBHost:     os.Getenv("DB_HOST"),
-		DBPort:     os.Getenv("DB_PORT"),
-		DBName:     os.Getenv("DB_NAME"),
-		Port:       os.Getenv("PORT"),
+		DBUser:     c.Get("DB_USER", ""),
+		DBPassword: c.Get("DB_PASSWORD", ""),
+		DBHost:     c.Get("DB_HOST", ""),
+		DBPort:     c.Get("DB_PORT", ""),
+		DBName:     c.Get("DB_NAME", ""),
+		Port:       c.Get("PORT", ""),
+		JWTSecret:  c.Get("JWT_SECRET", ""),
+		JWTExpire:  c.GetInt("JWT_EXPIRE", 1),
 	}
+}
+
+func (c *Config) Get(key, def string) string {
+	if value, ok := os.LookupEnv(key); ok {
+		return value
+	}
+
+	log.Printf("Failed to get %s, using default value: %s", key, def)
+	return def
+}
+
+func (c *Config) GetInt(key string, def int) int {
+	value, err := strconv.Atoi(os.Getenv(key))
+	if err != nil {
+		log.Printf("Failed to parse %s to int, using default value: %d", key, def)
+		return def
+	}
+
+	return value
 }

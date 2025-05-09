@@ -2,14 +2,17 @@
 package utils
 
 import (
+	"bookstore/internal/app/config"
 	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
 
+var cfg = config.LoadConfig()
+
 // JWT secret key - in production, store this in an environment variable
-var jwtSecretKey = []byte("your-secret-key-here")
+var jwtSecretKey = []byte(cfg.JWTSecret)
 
 // JWTClaims represents the claims in the JWT token
 type JWTClaims struct {
@@ -22,7 +25,7 @@ type JWTClaims struct {
 // GenerateJWTToken creates a new JWT token for a user
 func GenerateJWTToken(userID, email, name string) (string, error) {
 	// Set token expiration time (e.g., 24 hours)
-	expirationTime := time.Now().Add(24 * time.Hour)
+	expirationTime := time.Now().Add(time.Duration(cfg.JWTExpire) * 24 * time.Hour)
 
 	// Create claims with user data
 	claims := &JWTClaims{

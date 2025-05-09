@@ -2,6 +2,7 @@ package provider
 
 import (
 	"bookstore/internal/app/config"
+	"bookstore/internal/modules/book"
 	"bookstore/internal/modules/user"
 
 	"github.com/gofiber/fiber/v2"
@@ -22,6 +23,7 @@ func (p *Provider) Provide() {
 		Migrate(db *gorm.DB) error
 	}{
 		&user.UserModule{App: p.App, DB: p.DB},
+		&book.BookModule{App: p.App, DB: p.DB},
 		// Tambah modul lain di sini
 	}
 
