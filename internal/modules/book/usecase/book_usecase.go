@@ -21,6 +21,7 @@ func (b *BookUsecase) Create(req *model.BookRequest) (*model.BookResponse, error
 		Author:        req.Author,
 		Genre:         req.Genre,
 		PublishedYear: req.PublishedYear,
+		Price:         req.Price,
 	}
 
 	err := b.repo.Create(book)
@@ -33,6 +34,7 @@ func (b *BookUsecase) Create(req *model.BookRequest) (*model.BookResponse, error
 		Author:        book.Author,
 		Genre:         book.Genre,
 		PublishedYear: book.PublishedYear,
+		Price:         book.Price,
 		CreatedAt:     book.CreatedAt.Format(time.RFC3339),
 		UpdatedAt:     book.UpdatedAt.Format(time.RFC3339),
 	}, nil
@@ -48,13 +50,14 @@ func (b *BookUsecase) GetAll() ([]model.BookResponse, error) {
 		bookResponses = append(bookResponses, model.BookResponse{
 			ID:            book.ID.String(),
 			Title:         book.Title,
-			Author:		book.Author,
+			Author:        book.Author,
 			Genre:         book.Genre,
 			PublishedYear: book.PublishedYear,
+			Price:         book.Price,
 			CreatedAt:     book.CreatedAt.Format(time.RFC3339),
 			UpdatedAt:     book.UpdatedAt.Format(time.RFC3339),
 		})
-		
+
 	}
 	return bookResponses, nil
 }

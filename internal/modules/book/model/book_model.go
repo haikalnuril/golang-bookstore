@@ -5,6 +5,7 @@ type BookRequest struct {
 	Author        string
 	Genre         string
 	PublishedYear int
+	Price         int
 }
 
 type BookResponse struct {
@@ -13,6 +14,7 @@ type BookResponse struct {
 	Author        string
 	Genre         string
 	PublishedYear int
-	CreatedAt	 string
-	UpdatedAt	 string
+	Price         int
+	CreatedAt     string
+	UpdatedAt     string
 }
