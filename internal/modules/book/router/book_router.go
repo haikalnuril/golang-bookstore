@@ -14,4 +14,5 @@ func NewBookRouter(router fiber.Router, controller *controller.BookController) {
 	book.Post("/", controller.Create) // POST /books
 	book.Get("/:id", controller.GetByID) // GET /books/:id
 	book.Put("/:id", controller.Update) // PUT /books/:id
+	book.Delete("/:id", controller.Delete) // DELETE /books/:id
 }

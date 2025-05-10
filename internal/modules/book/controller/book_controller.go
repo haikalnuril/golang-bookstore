@@ -76,3 +76,17 @@ func (c *BookController) Update(ctx *fiber.Ctx) error {
 	return ctx.Status(fiber.StatusOK).JSON(utils.Success(book, "Book updated successfully"))
 
 }
+
+func (c *BookController) Delete(ctx *fiber.Ctx) error {
+	id := ctx.Params("id")
+	if id == "" {
+		return &exception.BadRequestError{Message: "ID is required"}
+	}
+
+	err := c.usecase.Delete(id)
+	if err != nil {
+		return &exception.InternalServerError{Message: "Failed to delete book"}
+	}
+
+	return ctx.Status(fiber.StatusNoContent).JSON(utils.Success(nil, "Book deleted successfully"))
+}

@@ -104,3 +104,7 @@ func (b *BookUsecase) Update(req *model.UpdateBookRequest) (*model.BookResponse,
 		UpdatedAt:     updatedBook.UpdatedAt.Format(time.RFC3339),
 	}, nil
 }
+
+func (b *BookUsecase) Delete(id string) error {
+	return b.repo.Delete(id)
+}
