@@ -32,12 +32,26 @@ func (c *BookController) Create(ctx *fiber.Ctx) error {
 }
 
 func (c *BookController) GetAll(ctx *fiber.Ctx) error {
-	books, err := c.usecase.GetAll()
+	var req model.SearchBookRequest
+
+	if err := ctx.QueryParser(&req); err != nil {
+		return &exception.BadRequestError{Message: "Invalid query parameters"}
+	}
+
+	// Default page/size if not provided
+	if req.Page < 1 {
+		req.Page = 1
+	}
+	if req.Size < 1 {
+		req.Size = 10
+	}
+
+	pageable, err := c.usecase.GetAll(&req)
 	if err != nil {
 		return &exception.InternalServerError{Message: "Failed to get books"}
 	}
 
-	return ctx.Status(fiber.StatusOK).JSON(utils.Success(books, "Books retrieved successfully"))
+	return ctx.Status(fiber.StatusOK).JSON(utils.Success(pageable, "Books retrieved successfully"))
 }
 
 func (c *BookController) GetByID(ctx *fiber.Ctx) error {

@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"bookstore/internal/modules/book/entity"
+	"bookstore/internal/modules/book/model"
 
 	"gorm.io/gorm"
 )
@@ -18,13 +19,35 @@ func (r *bookPostgres) Create(book *entity.Book) error {
 	return r.db.Create(book).Error // r stand for repository
 }
 
-func (r *bookPostgres) GetAll() ([]entity.Book, error) {
-	books := []entity.Book{}
-	err := r.db.Find(&books).Error
-	if err != nil {
-		return nil, err
+func (r *bookPostgres) GetAll(req *model.SearchBookRequest) ([]entity.Book, int, error) {
+	var books []entity.Book
+	query := r.db.Model(&entity.Book{})
+
+	if req.Title != nil {
+		query = query.Where("title ILIKE ?", "%"+*req.Title+"%")
 	}
-	return books, nil
+	if req.Author != nil {
+		query = query.Where("author ILIKE ?", "%"+*req.Author+"%")
+	}
+	if req.Genre != nil {
+		query = query.Where("genre ILIKE ?", "%"+*req.Genre+"%")
+	}
+	if req.PublishedYear != nil {
+		query = query.Where("published_year = ?", *req.PublishedYear)
+	}
+	if req.Price != nil {
+		query = query.Where("price = ?", *req.Price)
+	}
+
+	var total int64
+	query.Count(&total)
+
+	offset := (req.Page - 1) * req.Size
+	err := query.Limit(req.Size).Offset(offset).Find(&books).Error
+	if err != nil {
+		return nil, 0, err
+	}
+	return books, int(total), nil
 }
 
 func (r *bookPostgres) GetByID(id string) (*entity.Book, error) {

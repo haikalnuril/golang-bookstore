@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"bookstore/internal/app/utils"
 	"bookstore/internal/modules/book/entity"
 	"bookstore/internal/modules/book/model"
 	"bookstore/internal/modules/book/repository"
@@ -40,14 +41,15 @@ func (b *BookUsecase) Create(req *model.BookRequest) (*model.BookResponse, error
 	}, nil
 }
 
-func (b *BookUsecase) GetAll() ([]model.BookResponse, error) {
-	books, err := b.repo.GetAll()
+func (b *BookUsecase) GetAll(req *model.SearchBookRequest) (*utils.Pageable, error) {
+	books, total, err := b.repo.GetAll(req)
 	if err != nil {
 		return nil, err
 	}
-	var bookResponses []model.BookResponse
+
+	var response []model.BookResponse
 	for _, book := range books {
-		bookResponses = append(bookResponses, model.BookResponse{
+		response = append(response, model.BookResponse{
 			ID:            book.ID.String(),
 			Title:         book.Title,
 			Author:        book.Author,
@@ -57,9 +59,13 @@ func (b *BookUsecase) GetAll() ([]model.BookResponse, error) {
 			CreatedAt:     book.CreatedAt.Format(time.RFC3339),
 			UpdatedAt:     book.UpdatedAt.Format(time.RFC3339),
 		})
-
 	}
-	return bookResponses, nil
+
+	paging := utils.PaginateResult(total, req.Page, req.Size)
+	return &utils.Pageable{
+		Data:   response,
+		Paging: paging,
+	}, nil
 }
 
 func (b *BookUsecase) GetByID(id string) (*model.BookResponse, error) {
