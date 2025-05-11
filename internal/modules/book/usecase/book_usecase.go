@@ -80,15 +80,25 @@ func (b *BookUsecase) GetByID(id string) (*model.BookResponse, error) {
 }
 
 func (b *BookUsecase) Update(req *model.UpdateBookRequest) (*model.BookResponse, error) {
-	book := &entity.Book{
-		Title:         req.Title,
-		Author:        req.Author,
-		Genre:         req.Genre,
-		PublishedYear: req.PublishedYear,
-		Price:         req.Price,
+	updates := make(map[string]interface{})
+
+	if req.Title != nil {
+		updates["title"] = *req.Title
+	}
+	if req.Author != nil {
+		updates["author"] = *req.Author
+	}
+	if req.Genre != nil {
+		updates["genre"] = *req.Genre
+	}
+	if req.PublishedYear != nil {
+		updates["published_year"] = *req.PublishedYear
+	}
+	if req.Price != nil {
+		updates["price"] = *req.Price
 	}
 
-	updatedBook, err := b.repo.Update(req.ID, book)
+	updatedBook, err := b.repo.Update(req.ID, updates)
 	if err != nil {
 		return nil, err
 	}

@@ -36,12 +36,17 @@ func (r *bookPostgres) GetByID(id string) (*entity.Book, error) {
 	return book, nil
 }
 
-func (r *bookPostgres) Update(id string, book *entity.Book) ( *entity.Book,error) {
-	err := r.db.Model(&entity.Book{}).Where("id = ?", id).Updates(book).Error
+func (r *bookPostgres) Update(id string, updates map[string]interface{}) (*entity.Book, error) {
+	err := r.db.Model(&entity.Book{}).Where("id = ?", id).Updates(updates).Error
 	if err != nil {
 		return nil, err
 	}
-	return book, nil
+
+	var updated entity.Book
+	if err := r.db.First(&updated, "id = ?", id).Error; err != nil {
+		return nil, err
+	}
+	return &updated, nil
 }
 
 func (r *bookPostgres) Delete(id string) error {
