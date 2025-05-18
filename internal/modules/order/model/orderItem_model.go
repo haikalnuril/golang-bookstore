@@ -9,6 +9,11 @@ type CreateOrderItemInput struct {
 	Quantity int       `json:"quantity"`
 }
 
+type UpdateOrderItemRequest struct {
+	BookID   string `json:"book_id"`
+	Quantity int    `json:"quantity"`
+}
+
 type OrderItemResponse struct {
 	ID        string `json:"id"`
 	BookID    string `json:"book_id"`

@@ -9,6 +9,10 @@ type CreateOrderRequest struct {
 	Items  []CreateOrderItemInput `json:"items"` // <- use submodel type from orderItem_model.go
 }
 
+type UpdateOrderRequest struct {
+	Items []UpdateOrderItemRequest `json:"items"`
+}
+
 type OrderResponse struct {
 	ID         string              `json:"id"`
 	UserID     string              `json:"user_id"`

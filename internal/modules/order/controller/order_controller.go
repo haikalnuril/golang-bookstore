@@ -36,3 +36,29 @@ func (c *OrderController) GetAll(ctx *fiber.Ctx) error {
 	}
 	return ctx.JSON(orders)
 }
+
+func (c *OrderController) Update(ctx *fiber.Ctx) error {
+	orderID := ctx.Params("id")
+	var req model.UpdateOrderRequest
+
+	if err := ctx.BodyParser(&req); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "Invalid request")
+	}
+
+	order, err := c.usecase.Update(orderID, req)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+
+	return ctx.JSON(order)
+}
+
+func (c *OrderController) Delete(ctx *fiber.Ctx) error {
+	orderID := ctx.Params("id")
+
+	if err := c.usecase.Delete(orderID); err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+
+	return ctx.SendStatus(fiber.StatusNoContent)
+}

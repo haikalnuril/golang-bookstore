@@ -1,4 +1,4 @@
-package routes
+package router
 
 import (
 	"bookstore/internal/modules/order/controller"
@@ -11,4 +11,6 @@ func NewOrderRouter(router fiber.Router, controller *controller.OrderController)
 	order := router.Group("/orders", middleware.Protected())
 	order.Post("/", controller.Create)
 	order.Get("/", controller.GetAll)
+	order.Put("/:id", controller.Update)
+	order.Delete("/:id", controller.Delete)
 }

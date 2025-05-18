@@ -15,7 +15,7 @@ type OrderUsecase struct {
 	bookRepo        bookrepo.BookRepository
 }
 
-func NewOrderUseCase(repo repository.OrderRepository, bookRepo bookrepo.BookRepository) *OrderUsecase {
+func NewOrderUsecase(repo repository.OrderRepository, bookRepo bookrepo.BookRepository) *OrderUsecase {
 	return &OrderUsecase{
 		repo:    repo,
 		bookRepo: bookRepo,
@@ -91,4 +91,48 @@ func (u *OrderUsecase) toResponse(order *entity.Order) *model.OrderResponse {
 		CreatedAt:  order.CreatedAt.Format(time.RFC3339),
 		UpdatedAt:  order.UpdatedAt.Format(time.RFC3339),
 	}
+}
+
+func (u *OrderUsecase) Update(orderID string, req model.UpdateOrderRequest) (*model.OrderResponse, error) {
+	existing, err := u.repo.GetByID(orderID)
+	if err != nil {
+		return nil, err
+	}
+
+	updatedItems := []entity.OrderItem{}
+	total := 0
+
+	for _, item := range req.Items {
+		book, err := u.bookRepo.GetByID(item.BookID)
+		if err != nil {
+			return nil, err
+		}
+
+		unitPrice := book.Price
+		total += unitPrice * item.Quantity
+
+		updatedItems = append(updatedItems, entity.OrderItem{
+			ID:        uuid.New(),
+			OrderID:   existing.ID,
+			BookID:    book.ID,
+			Quantity:  item.Quantity,
+			UnitPrice: unitPrice,
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		})
+	}
+
+	existing.Items = updatedItems
+	existing.TotalPrice = total
+	existing.UpdatedAt = time.Now()
+
+	if err := u.repo.Update(existing); err != nil {
+		return nil, err
+	}
+
+	return u.toResponse(existing), nil
+}
+
+func (u *OrderUsecase) Delete(orderID string) error {
+	return u.repo.Delete(orderID)
 }
