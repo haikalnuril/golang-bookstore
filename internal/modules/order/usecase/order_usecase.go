@@ -1,23 +1,33 @@
 package usecase
 
 import (
+	bookrepo "bookstore/internal/modules/book/repository"
 	"bookstore/internal/modules/order/entity"
 	"bookstore/internal/modules/order/model"
 	"bookstore/internal/modules/order/repository"
-	bookrepo "bookstore/internal/modules/book/repository"
 	"time"
+
+	"bookstore/internal/app/pkg/rabbitmq"
+	"encoding/json"
+	"fmt"
 
 	"github.com/google/uuid"
 )
 
 type OrderUsecase struct {
-	repo repository.OrderRepository
-	bookRepo        bookrepo.BookRepository
+	repo     repository.OrderRepository
+	bookRepo bookrepo.BookRepository
+}
+
+type OrderNotification struct {
+	OrderID string `json:"order_id"`
+	UserID  string `json:"user_id"`
+	Total   int    `json:"total_price"`
 }
 
 func NewOrderUsecase(repo repository.OrderRepository, bookRepo bookrepo.BookRepository) *OrderUsecase {
 	return &OrderUsecase{
-		repo:    repo,
+		repo:     repo,
 		bookRepo: bookRepo,
 	}
 }
@@ -56,6 +66,17 @@ func (u *OrderUsecase) Create(req model.CreateOrderRequest) (*model.OrderRespons
 
 	if err := u.repo.Create(order); err != nil {
 		return nil, err
+	}
+
+	// 📨 RabbitMQ Notification
+	notif := OrderNotification{
+		OrderID: order.ID.String(),
+		UserID:  order.UserID.String(),
+		Total:   order.TotalPrice,
+	}
+	body, _ := json.Marshal(notif)
+	if err := rabbitmq.Publish("order.notification", body); err != nil {
+		fmt.Println("⚠️ Failed to publish order notification:", err)
 	}
 
 	return u.toResponse(order), nil

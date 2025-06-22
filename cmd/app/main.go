@@ -2,6 +2,7 @@ package main
 
 import (
 	"bookstore/internal/app/config"
+	"bookstore/internal/app/pkg/rabbitmq"
 	"bookstore/internal/app/provider"
 	"fmt"
 	"strconv"
@@ -19,6 +20,13 @@ func main() {
 	)
 
 	bootstrap.Provide()
+
+	// Init RabbitMQ
+	rabbitmq.Init()
+	defer rabbitmq.Close()
+
+	// Start Consumer
+	rabbitmq.StartOrderConsumer()
 
 	port, atoiErr := strconv.Atoi(cfg.Port)
 	if atoiErr != nil {
