@@ -6,6 +6,7 @@ import (
 	"bookstore/internal/modules/book/repository/postgres"
 	"bookstore/internal/modules/book/router"
 	"bookstore/internal/modules/book/usecase"
+	"bookstore/internal/app/config"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
@@ -19,7 +20,8 @@ type BookModule struct {
 func (b *BookModule) Register() {
 	bookRepo := postgres.NewBookPostgres(b.DB)
 	bookUsecase := usecase.NewBookUsecase(bookRepo)
-	bookController := controller.NewBookController(bookUsecase)
+	validator := config.NewValidator()
+	bookController := controller.NewBookController(bookUsecase, validator)
 
 	api := b.App.Group("/api/v1")
 	router.NewBookRouter(api, bookController)

@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"bookstore/internal/app/config"
 	"bookstore/internal/app/exception"
 	"bookstore/internal/app/utils"
 	"bookstore/internal/modules/book/model"
@@ -10,17 +11,25 @@ import (
 )
 
 type BookController struct {
-	usecase *usecase.BookUsecase
+	usecase   *usecase.BookUsecase
+	validator *config.Validator
 }
 
-func NewBookController(usecase *usecase.BookUsecase) *BookController {
-	return &BookController{usecase: usecase}
+func NewBookController(usecase *usecase.BookUsecase, validator *config.Validator) *BookController {
+	return &BookController{
+		usecase:   usecase,
+		validator: validator,
+	}
 }
 
 func (c *BookController) Create(ctx *fiber.Ctx) error {
 	var req model.BookRequest
 	if err := ctx.BodyParser(&req); err != nil {
 		return &exception.BadRequestError{Message: "Invalid request body"}
+	}
+
+	if errs := c.validator.Validate(req); len(errs) > 0 {
+		return &exception.BadRequestError{Message: c.validator.Message(errs)}
 	}
 
 	book, err := c.usecase.Create(&req)
@@ -38,7 +47,6 @@ func (c *BookController) GetAll(ctx *fiber.Ctx) error {
 		return &exception.BadRequestError{Message: "Invalid query parameters"}
 	}
 
-	// Default page/size if not provided
 	if req.Page < 1 {
 		req.Page = 1
 	}
@@ -82,13 +90,16 @@ func (c *BookController) Update(ctx *fiber.Ctx) error {
 
 	req.ID = id
 
+	if errs := c.validator.Validate(req); len(errs) > 0 {
+		return &exception.BadRequestError{Message: c.validator.Message(errs)}
+	}
+
 	book, err := c.usecase.Update(&req)
 	if err != nil {
 		return &exception.InternalServerError{Message: "Failed to update book"}
 	}
 
 	return ctx.Status(fiber.StatusOK).JSON(utils.Success(book, "Book updated successfully"))
-
 }
 
 func (c *BookController) Delete(ctx *fiber.Ctx) error {
