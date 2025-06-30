@@ -3,6 +3,7 @@ package provider
 import (
 	"bookstore/internal/app/config"
 	"bookstore/internal/modules/book"
+	"bookstore/internal/modules/order"
 	"bookstore/internal/modules/user"
 
 	"github.com/gofiber/fiber/v2"
@@ -24,6 +25,7 @@ func (p *Provider) Provide() {
 	}{
 		&user.UserModule{App: p.App, DB: p.DB},
 		&book.BookModule{App: p.App, DB: p.DB},
+		&order.OrderModule{App: p.App, DB: p.DB},
 		// Tambah modul lain di sini
 	}
 
