@@ -1,6 +1,9 @@
 package controller
 
 import (
+	"bookstore/internal/app/config"
+	"bookstore/internal/app/exception"
+	"bookstore/internal/app/utils"
 	"bookstore/internal/modules/order/model"
 	"bookstore/internal/modules/order/usecase"
 
@@ -8,33 +11,41 @@ import (
 )
 
 type OrderController struct {
-	usecase *usecase.OrderUsecase
+	usecase   *usecase.OrderUsecase
+	validator *config.Validator
 }
 
-func NewOrderController(u *usecase.OrderUsecase) *OrderController {
-	return &OrderController{usecase: u}
+func NewOrderController(u *usecase.OrderUsecase, v *config.Validator) *OrderController {
+	return &OrderController{
+		usecase:   u,
+		validator: v,
+	}
 }
 
 func (c *OrderController) Create(ctx *fiber.Ctx) error {
 	var req model.CreateOrderRequest
 	if err := ctx.BodyParser(&req); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, "Invalid request")
+		return &exception.BadRequestError{Message: "Invalid request"}
+	}
+
+	if errs := c.validator.Validate(req); len(errs) > 0 {
+		return &exception.BadRequestError{Message: c.validator.Message(errs)}
 	}
 
 	order, err := c.usecase.Create(req)
 	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		return &exception.InternalServerError{Message: err.Error()}
 	}
 
-	return ctx.Status(fiber.StatusCreated).JSON(order)
+	return ctx.Status(fiber.StatusCreated).JSON(utils.Created(order, "Order created successfully"))
 }
 
 func (c *OrderController) GetAll(ctx *fiber.Ctx) error {
 	orders, err := c.usecase.GetAll()
 	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		return &exception.InternalServerError{Message: err.Error()}
 	}
-	return ctx.JSON(orders)
+	return ctx.Status(fiber.StatusOK).JSON(utils.Success(orders, "Orders retrieved successfully"))
 }
 
 func (c *OrderController) Update(ctx *fiber.Ctx) error {
@@ -42,23 +53,27 @@ func (c *OrderController) Update(ctx *fiber.Ctx) error {
 	var req model.UpdateOrderRequest
 
 	if err := ctx.BodyParser(&req); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, "Invalid request")
+		return &exception.BadRequestError{Message: "Invalid request"}
+	}
+
+	if errs := c.validator.Validate(req); len(errs) > 0 {
+		return &exception.BadRequestError{Message: c.validator.Message(errs)}
 	}
 
 	order, err := c.usecase.Update(orderID, req)
 	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		return &exception.InternalServerError{Message: err.Error()}
 	}
 
-	return ctx.JSON(order)
+	return ctx.Status(fiber.StatusOK).JSON(utils.Success(order, "Order updated successfully"))
 }
 
 func (c *OrderController) Delete(ctx *fiber.Ctx) error {
 	orderID := ctx.Params("id")
 
 	if err := c.usecase.Delete(orderID); err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		return &exception.InternalServerError{Message: err.Error()}
 	}
 
-	return ctx.SendStatus(fiber.StatusNoContent)
+	return ctx.Status(fiber.StatusNoContent).JSON(utils.Success(nil, "Order deleted successfully"))
 }

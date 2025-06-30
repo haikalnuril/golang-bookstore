@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"bookstore/internal/app/config"
 	"bookstore/internal/app/exception"
 	"bookstore/internal/app/utils"
 	"bookstore/internal/modules/user/model"
@@ -12,17 +13,25 @@ import (
 )
 
 type UserController struct {
-	usecase *usecase.UserUsecase
+	usecase   *usecase.UserUsecase
+	validator *config.Validator
 }
 
-func NewUserController(usecase *usecase.UserUsecase) *UserController {
-	return &UserController{usecase: usecase}
+func NewUserController(usecase *usecase.UserUsecase, validator *config.Validator) *UserController {
+	return &UserController{
+		usecase:   usecase,
+		validator: validator,
+	}
 }
 
 func (c *UserController) Create(ctx *fiber.Ctx) error {
 	var req model.UserRequest
 	if err := ctx.BodyParser(&req); err != nil {
 		return &exception.BadRequestError{Message: "Invalid request body"}
+	}
+
+	if errs := c.validator.Validate(req); len(errs) > 0 {
+		return &exception.BadRequestError{Message: c.validator.Message(errs)}
 	}
 
 	user, err := c.usecase.Create(&req)
@@ -61,15 +70,18 @@ func (c *UserController) GetByEmail(ctx *fiber.Ctx) error {
 }
 
 func (c *UserController) Update(ctx *fiber.Ctx) error {
-	id := ctx.Params("id") // ambil ID dari URL
-
+	id := ctx.Params("id")
 	var req model.UserUpdateRequest
 
 	if err := ctx.BodyParser(&req); err != nil {
 		return &exception.BadRequestError{Message: "Invalid request body"}
 	}
 
-	req.ID = id // set ID dari URL ke request body
+	req.ID = id
+
+	if errs := c.validator.Validate(req); len(errs) > 0 {
+		return &exception.BadRequestError{Message: c.validator.Message(errs)}
+	}
 
 	user, err := c.usecase.Update(&req)
 	if err != nil {
@@ -81,7 +93,6 @@ func (c *UserController) Update(ctx *fiber.Ctx) error {
 
 func (c *UserController) Delete(ctx *fiber.Ctx) error {
 	id := ctx.Params("id")
-
 	if id == "" {
 		return &exception.BadRequestError{Message: "ID is required"}
 	}
@@ -100,22 +111,16 @@ func (c *UserController) Login(ctx *fiber.Ctx) error {
 		return &exception.BadRequestError{Message: "Invalid request body"}
 	}
 
-	// Basic validation
-	if req.Email == "" || req.Password == "" {
-		return &exception.BadRequestError{Message: "Email and password are required"}
+	if errs := c.validator.Validate(req); len(errs) > 0 {
+		return &exception.BadRequestError{Message: c.validator.Message(errs)}
 	}
 
 	user, err := c.usecase.Login(&req)
 	if err != nil {
-		// Check for specific error cases
-		if strings.Contains(err.Error(), "not found") {
-			return &exception.UnauthorizedError{Message: "Email or password is incorrect"}
-		}
-		if strings.Contains(err.Error(), "invalid password") {
+		if strings.Contains(err.Error(), "not found") || strings.Contains(err.Error(), "invalid password") {
 			return &exception.UnauthorizedError{Message: "Email or password is incorrect"}
 		}
 
-		// Log the actual error for debugging
 		fmt.Printf("Login error: %v\n", err)
 		return &exception.InternalServerError{Message: "Authentication failed"}
 	}

@@ -1,6 +1,7 @@
 package user
 
 import (
+	"bookstore/internal/app/config"
 	"bookstore/internal/modules/user/controller"
 	"bookstore/internal/modules/user/entity"
 	"bookstore/internal/modules/user/repository/postgres"
@@ -19,7 +20,7 @@ type UserModule struct {
 func (u *UserModule) Register() {
 	userRepo := postgres.NewUserPostgres(u.DB)
 	userUsecase := usecase.NewUserUsecase(userRepo)
-	userController := controller.NewUserController(userUsecase)
+	userController := controller.NewUserController(userUsecase, &config.Validator{})
 
 	api := u.App.Group("/api/v1")
 	router.NewUserRouter(api, userController)
